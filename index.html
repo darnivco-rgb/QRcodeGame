@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شبیه‌ساز فروش پروژه Ecoman QR Hunt</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            line-height: 1.8;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 25px 30px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+        h1, h2 {
+            color: #003440;
+            font-weight: 800;
+            border-bottom: 3px solid #f7b801;
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+        }
+        h2 {
+            font-size: 1.8rem;
+        }
+        .simulation-controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+        #run-simulation {
+            background-color: #1a535c;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-family: 'Vazirmatn', sans-serif;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            font-weight: 700;
+        }
+        #run-simulation:hover {
+            background-color: #4ecdc4;
+            transform: translateY(-2px);
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 1rem;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #003440;
+            color: white;
+            font-weight: 600;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .total-revenue-row td {
+            font-weight: 800;
+            font-size: 1.2rem;
+            background-color: #fff3cd !important;
+            color: #856404;
+        }
+        .scenario-header-row td {
+             font-weight: 700;
+             font-size: 1.3rem;
+             background-color: #e2e3e5 !important;
+             color: #1a535c;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>شبیه‌ساز درآمد پروژه Ecoman QR Hunt</h1>
+        
+        <div class="simulation-controls">
+            <button id="run-simulation">اجرای مجدد شبیه‌سازی (تولید ۱۰ سناریوی جدید)</button>
+        </div>
+
+        <div id="simulation-results">
+            <!-- Simulation results will be injected here by JavaScript -->
+        </div>
+
+        <div id="assumptions">
+            <h2>مفروضات مدل شبیه‌سازی</h2>
+            <ul>
+                <li><strong>تعداد کل غرفه‌داران:</strong> عددی تصادفی بین <strong>۶۰ تا ۱۵۰</strong> در هر سناریو.</li>
+                <li><strong>قیمت بسته‌ها:</strong>
+                    <ul>
+                        <li>بسته Legend: <strong>۳,۵۰۰,۰۰۰ تومان</strong></li>
+                        <li>بسته Normal: <strong>۲,۲۰۰,۰۰۰ تومان</strong></li>
+                        <li>بسته Common: <strong>۱,۰۰۰,۰۰۰ تومان</strong></li>
+                    </ul>
+                </li>
+                 <li><strong>قیمت افزونه‌ها (Add-ons):</strong>
+                    <ul>
+                        <li>افزونه Common: <strong>۳۰۰,۰۰۰ تومان</strong></li>
+                        <li>افزونه Normal: <strong>۹۰۰,۰۰۰ تومان</strong></li>
+                    </ul>
+                </li>
+                <li><strong>توزیع خرید بسته‌ها (تصادفی در بازه‌های زیر):</strong>
+                    <ul>
+                        <li>سهم بسته Legend: <strong>۵٪ تا ۱۵٪</strong> از کل غرفه‌داران.</li>
+                        <li>سهم بسته Normal: <strong>۳۰٪ تا ۵۰٪</strong> از کل غرفه‌داران.</li>
+                        <li>سهم بسته Common: مابقی غرفه‌داران.</li>
+                    </ul>
+                </li>
+                 <li><strong>توزیع خرید افزونه‌ها:</strong>
+                    <ul>
+                        <li><strong>۲۰٪</strong> از خریداران Normal و Legend، افزونه Common می‌خرند.</li>
+                        <li><strong>۱۰٪</strong> از خریداران Legend، افزونه Normal می‌خرند.</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to generate a random integer within a range
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // Helper function to format numbers as currency
+        function formatCurrency(num) {
+            return new Intl.NumberFormat('fa-IR').format(num) + ' تومان';
+        }
+
+        // Pricing constants
+        const PRICES = {
+            legend: 3500000,
+            normal: 2200000,
+            common: 1000000,
+            addonCommon: 300000,
+            addonNormal: 900000,
+        };
+
+        function runSingleSimulation(scenarioIndex) {
+            // 1. Determine total exhibitors for this scenario
+            const totalExhibitors = getRandomInt(60, 150);
+
+            // 2. Determine distribution of packages
+            const legendShare = getRandomInt(5, 15) / 100;
+            const normalShare = getRandomInt(30, 50) / 100;
+            
+            let legendCount = Math.round(totalExhibitors * legendShare);
+            let normalCount = Math.round(totalExhibitors * normalShare);
+            let commonCount = totalExhibitors - legendCount - normalCount;
+            
+            // Ensure no negative counts if rounding goes weird
+            if (commonCount < 0) {
+                 normalCount += commonCount; // reduce normal count
+                 commonCount = 0;
+            }
+            if (normalCount < 0) {
+                legendCount += normalCount; // reduce legend count
+                normalCount = 0;
+            }
+
+
+            // 3. Calculate Add-on sales
+            const addonCommonBuyers = Math.round((normalCount + legendCount) * 0.20);
+            const addonNormalBuyers = Math.round(legendCount * 0.10);
+
+            // 4. Calculate revenues
+            const legendRevenue = legendCount * PRICES.legend;
+            const normalRevenue = normalCount * PRICES.normal;
+            const commonRevenue = commonCount * PRICES.common;
+            const addonCommonRevenue = addonCommonBuyers * PRICES.addonCommon;
+            const addonNormalRevenue = addonNormalBuyers * PRICES.addonNormal;
+            
+            const totalRevenue = legendRevenue + normalRevenue + commonRevenue + addonCommonRevenue + addonNormalRevenue;
+
+            // 5. Create HTML table for this scenario
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead>
+                    <tr class="scenario-header-row">
+                        <td colspan="4">سناریوی شبیه‌سازی شماره ${scenarioIndex} (کل غرفه‌داران: ${totalExhibitors} واحد)</td>
+                    </tr>
+                    <tr>
+                        <th>آیتم فروش</th>
+                        <th>تعداد فروش</th>
+                        <th>قیمت واحد</th>
+                        <th>درآمد آیتم</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>بسته Legend</td>
+                        <td>${legendCount}</td>
+                        <td>${formatCurrency(PRICES.legend)}</td>
+                        <td>${formatCurrency(legendRevenue)}</td>
+                    </tr>
+                    <tr>
+                        <td>بسته Normal</td>
+                        <td>${normalCount}</td>
+                        <td>${formatCurrency(PRICES.normal)}</td>
+                        <td>${formatCurrency(normalRevenue)}</td>
+                    </tr>
+                    <tr>
+                        <td>بسته Common</td>
+                        <td>${commonCount}</td>
+                        <td>${formatCurrency(PRICES.common)}</td>
+                        <td>${formatCurrency(commonRevenue)}</td>
+                    </tr>
+                     <tr>
+                        <td>افزونه Common</td>
+                        <td>${addonCommonBuyers}</td>
+                        <td>${formatCurrency(PRICES.addonCommon)}</td>
+                        <td>${formatCurrency(addonCommonRevenue)}</td>
+                    </tr>
+                     <tr>
+                        <td>افزونه Normal</td>
+                        <td>${addonNormalBuyers}</td>
+                        <td>${formatCurrency(PRICES.addonNormal)}</td>
+                        <td>${formatCurrency(addonNormalRevenue)}</td>
+                    </tr>
+                    <tr class="total-revenue-row">
+                        <td colspan="3">جمع کل درآمد در این سناریو</td>
+                        <td>${formatCurrency(totalRevenue)}</td>
+                    </tr>
+                </tbody>
+            `;
+            return table;
+        }
+
+        function generateAllSimulations() {
+            const resultsContainer = document.getElementById('simulation-results');
+            resultsContainer.innerHTML = '<h2>نتایج ۱۰ شبیه‌سازی فروش</h2>'; // Clear previous results and add header
+            
+            for (let i = 1; i <= 10; i++) {
+                const simulationTable = runSingleSimulation(i);
+                resultsContainer.appendChild(simulationTable);
+            }
+        }
+
+        // Attach event listener to the button
+        document.getElementById('run-simulation').addEventListener('click', generateAllSimulations);
+
+        // Run the simulation for the first time on page load
+        window.onload = generateAllSimulations;
+    </script>
+
+</body>
+</html>
